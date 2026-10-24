@@ -1,0 +1,40 @@
+
+name: Build Godzilla Mod
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Combine ZIP parts
+        run: |
+          cat G1_Forge_1.20.1_GitHub_Build_Ready.zip.part00 \
+              G1_Forge_1.20.1_GitHub_Build_Ready.zip.part01 \
+              > project.zip
+
+      - name: Extract project
+        run: unzip -o project.zip
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.8'
+
+      - name: Build mod
+        run: gradle --no-daemon -p G1_Forge_1.20.1 clean build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Godzilla-Forge-Mod
+          path: G1_Forge_1.20.1/build/libs/*.jar
+          if-no-files-found: error
